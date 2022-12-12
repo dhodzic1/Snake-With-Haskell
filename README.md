@@ -24,6 +24,4 @@ controlling movement and interacting with the game environment through multiple 
   4. `QuickCheck` for writing test case properties that can be run to test the correctness of our project.
 
 ## Code Structure 
-The code is structured in a manner that follows our order of approach mentioned in the execution summary.
-
 Our datatypes, game status, border/board, rendering, and code functions for corresponding elements of the game are all organized towards the top. What follows is our code for random generation of food items and then our core game loop and main functions. The main component of our code is the function `gmLoop` which is where the majority of the core logic is taking place as we recurse on it.
