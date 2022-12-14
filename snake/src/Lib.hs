@@ -185,7 +185,7 @@ gmLoop status future_input_real latest_input_real xs d food ui
       _ <- system "clear" -- clear the screen before drawing
       draw fbrd (scoreBoard ui (length xs) ((length xs * 10) `div` 20))
       -- print (gameStatus brdSnakeFood xs)
-      threadDelay ((20 `div` length xs) * 30000) -- delay, everytime length increases, speed of snake increases
+      threadDelay ((25 `div` length xs) * 30000) -- delay, everytime length increases, speed of snake increases
       -- Sequence of actions are:
       -- Get a character << fill an MVar if empty, block otherwise (future input) << fill an MVar if empty (latest input)
       _ <-
@@ -205,7 +205,7 @@ gmLoop status future_input_real latest_input_real xs d food ui
     fCand = foodCandidates snakeBrd -- possible food candidate spawn points
     rf = generateFood fCand -- random food generated
     fbrd = codeName $ foodCode food snakeBrd -- new board after food is inserted
-    updStat = gameStatus fbrd xs -- update status
+    updStat = gameStatus (setBorder 45 45) xs -- update status
     ns = eat xs food -- new snake after eating food
     -- This function will take care of reading in new input from the user as well as recursing on gmLoop
     wait fi' li' = do
@@ -214,20 +214,18 @@ gmLoop status future_input_real latest_input_real xs d food ui
       if isJust input -- if there is an input
         then do
           putMVar li' (fromJust input) -- fill MVar with new input, otherwise wait if full
-          when (status /= Dead) $ do
-            if head xs == food -- check if the head of the snake has interacted with a food element
-            -- if so, we want to update the snake with an new snake after eating the food so gmLoop takes ns
-            -- otherwise, we want to do nothing to the body of the snake and continue the gmLoop as is
-              then gmLoop updStat fi' li' (setSnakeBody (fromJust input) d ns) (sdir (fromJust input) d) rf ui
-              else gmLoop updStat fi' li' (setSnakeBody (fromJust input) d xs) (sdir (fromJust input) d) food ui
+          if head xs == food && (updStat /= Dead) -- check if the head of the snake has interacted with a food element
+          -- if so, we want to update the snake with an new snake after eating the food so gmLoop takes ns
+          -- otherwise, we want to do nothing to the body of the snake and continue the gmLoop as is
+            then gmLoop updStat fi' li' (setSnakeBody (fromJust input) d ns) (sdir (fromJust input) d) rf ui
+            else gmLoop updStat fi' li' (setSnakeBody (fromJust input) d xs) (sdir (fromJust input) d) food ui
         else do
           putMVar li' old_input
-          when (status /= Dead) $ do
-            if head xs == food -- check if the head of the snake has interacted with a food element
-            -- if so, we want to update the snake with an new snake after eating the food so gmLoop takes ns
-            -- otherwise, we want to do nothing to the body of the snake and continue the gmLoop as is
-              then gmLoop updStat fi' li' (setSnakeBody old_input d ns) (sdir old_input d) rf ui
-              else gmLoop updStat fi' li' (setSnakeBody old_input d xs) (sdir old_input d) food ui
+          if head xs == food && (updStat /= Dead) -- check if the head of the snake has interacted with a food element
+          -- if so, we want to update the snake with an new snake after eating the food so gmLoop takes ns
+          -- otherwise, we want to do nothing to the body of the snake and continue the gmLoop as is
+            then gmLoop updStat fi' li' (setSnakeBody old_input d ns) (sdir old_input d) rf ui
+            else gmLoop updStat fi' li' (setSnakeBody old_input d xs) (sdir old_input d) food ui
 
 -- Utilize the functions sdir, snakeMove, and snakeBody to set the direction
 setSnakeBody :: Char -> SnakeDirection -> [(Int, Int)] -> [(Int, Int)]
